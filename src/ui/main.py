@@ -2,8 +2,8 @@ import pygame
 import sys
 
 # 从状态文件中调取不同界面状态
-from states import menu, leaderboard, settings, about
-from states.gameplay import gameplay
+from .states import menu, leaderboard, settings, about
+from .states.gameplay import gameplay
 
 # 游戏状态常量
 MENU = 0

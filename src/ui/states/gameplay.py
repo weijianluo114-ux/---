@@ -1,12 +1,12 @@
 import pygame     #游戏包
 import sys  #用于退出系统
 
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))   # 将 your_project 加入路径
+# from pathlib import Path
+# sys.path.insert(0, str(Path(__file__).parent.parent))   # 将 your_project 加入路径
 
 # 导入自定义组件
-from components import tower_m
-from components import disk_m
+from ..components import tower_m
+from ..components import disk_m
 
 # 参数
 # width, height = 1280, 720
