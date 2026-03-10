@@ -50,9 +50,7 @@ def main():
             # 其他状态类似...
         
         # 更新逻辑（如果需要，例如动画）
-        if current_state == GAMEPLAY:
-            s_gameplay.update()
-        
+
         # 绘制
         if current_state == MENU:
             # menu.draw()
