@@ -17,8 +17,7 @@ class gameplay(object):
         self.width = screen.get_width()
         self.height = screen.get_height()
         self.holding_disk_height = 180      #拿起的柱子的高度
-        self.start_ticks = 0.0
-        self.time_str = None
+        self.time_str = '0.00'
         self.time_continue = 1
         
         
@@ -40,8 +39,9 @@ class gameplay(object):
         # 将所有盘子加到第一根柱子（索引0）
         for disk in self.disks:
             self.towers[0].add_disk(disk)
+        
     
-    def handle_events(self, event):
+    def handle_events(self, event, mouse_pos):
         # 处理游戏中的键盘事件，按 ESC 返回菜单
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             return 0   # 返回主菜单状态 MENU
@@ -72,57 +72,62 @@ class gameplay(object):
                         self.holding_disk = None
                     else:
                         print("不能放在这里，规则不允许")
-        return None
+        return self.win_detect()
+
+    #定义一个刷新盘子的方法
+    def reset(self):
+        #清空所有柱子的盘子
+        for tower in self.towers:
+            tower.disks = []
+        # 将所有盘子加到第一根柱子（索引0）
+        for disk in self.disks:
+            self.towers[0].add_disk(disk)
 
     def win_detect(self):
         last_tower = self.towers[-1]
         if len(last_tower.disks) == self.num_disks:
-            return 1
-        return 0
+            return 5
+        return 1    #1为游玩态
         
 
     def time_accumulate(self, start_ticks):
-        if self.win_detect():
-            #将时间暂停
-            self.time_continue = 0
-        if self.time_continue == 1:
+        #首先检测获胜
+        if self.win_detect() == 5:
+            # #将时间暂停
+            # self.time_continue = 0
+            return self.time_str
+        #未获得胜利的时候继续计时
+        elif self.win_detect() == 1:
+        #     self.time_continue = 1
+        # elif self.time_continue == 1:
             # 计算已经过的秒数
             elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000.0
             # 格式化为小数点后两位
             self.time_str = f"{elapsed_seconds:.2f}"
+            return self.time_str
         else:
-            pass
+            return '0.00'
+        
         
 
     def draw(self):
-        if self.win_detect():            
-            self.screen_surface.fill((255,255,255))     #清屏
-            # 渲染文本
-            win_str = f'你过关！通关时间为:{self.time_str}s!'
-            win_text = self.game_font.render(win_str, True, (0, 0, 0))
-            # 绘制到屏幕
-            win_text_rect = win_text.get_rect()
-            # centerx 和 centery 分别设置矩形的中心 x 和 y 坐标
-            win_text_rect.center = self.screen_surface.get_rect().center
-            self.screen_surface.blit(win_text, win_text_rect)
-        else:
-            self.screen_surface.fill((255,255,255))     #清屏
-            for tower in self.towers:
-                tower.draw(self.screen_surface)
-            
-            # 绘制手中盘子
-            if self.holding_disk:
-                # 获取当前选中柱子的中心x坐标
-                tower_x = self.towers[self.selected_tower].x
-                # 设置盘子的位置：x为柱子中心，y固定为100
-                self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
-                self.holding_disk.draw(self.screen_surface)     #绘制
+        self.screen_surface.fill((255,255,255))     #清屏
+        for tower in self.towers:
+            tower.draw(self.screen_surface)
+        
+        # 绘制手中盘子
+        if self.holding_disk:
+            # 获取当前选中柱子的中心x坐标
+            tower_x = self.towers[self.selected_tower].x
+            # 设置盘子的位置：x为柱子中心，y固定为100
+            self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
+            self.holding_disk.draw(self.screen_surface)     #绘制
 
-            #绘制时间
-            # 渲染文本
-            time_text = self.game_font.render(self.time_str, True, (0, 0, 0))
-            # 绘制到屏幕
-            self.screen_surface.blit(time_text, (10, 10))
+        #绘制时间
+        # 渲染文本
+        time_text = self.game_font.render(self.time_str, True, (0, 0, 0))
+        # 绘制到屏幕
+        self.screen_surface.blit(time_text, (10, 10))
             
         
         

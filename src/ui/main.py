@@ -5,6 +5,7 @@ import sys
 from .states import leaderboard, settings, about
 from .states.gameplay import gameplay
 from .states.menu import menu
+from .states.win import win
 
 # 游戏状态常量
 MENU = 0
@@ -12,15 +13,17 @@ GAMEPLAY = 1
 LEADERBOARD = 2
 SETTINGS = 3
 ABOUT = 4
+WIN = 5
 
 # 各种参数
 width, height = 1280, 720
-num_disks = 5       #盘子的数量
+num_disks = 1       #盘子的数量
 num_towers = 3       #柱子的数量
-start_time_flag = 0.0     #开始计时的标志参数
+game_start = 1
+start_ticks = 0
 
 def main():
-    global start_time_flag, start_ticks
+    global start_ticks, win_time, game_start
     
     pygame.init()   #初始化pygame
     screen = pygame.display.set_mode((width, height))   #屏幕类
@@ -34,6 +37,7 @@ def main():
     # 初始化各个界面（传入共享资源，如screen, font）
     s_menu = menu(screen)
     s_gameplay = gameplay(screen, font, num_disks, num_towers)   # 游戏界面初始化（创建柱子、盘子等）
+    s_win = win(screen)
     # leaderboard.init(screen, font)
     # settings.init(screen, font)
     # about.init(screen, font)
@@ -47,15 +51,27 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            #菜单栏状态
             elif current_state == MENU:
+                game_start = 1
                 new_state = s_menu.handle_events(event, mouse_pos)
                 if new_state is not None:
                     current_state = new_state
-                if new_state == GAMEPLAY and start_time_flag == 0:
-                    start_time_flag = 1
-                    start_ticks = pygame.time.get_ticks()
+            #游玩状态        
             elif current_state == GAMEPLAY:
-                new_state = s_gameplay.handle_events(event)
+                #判断是否是进入这个状态的那一刻
+                if game_start == 1:
+                    start_ticks = pygame.time.get_ticks()
+                    s_gameplay.reset()
+                    game_start = 0
+                    
+                new_state = s_gameplay.handle_events(event, mouse_pos)
+                if new_state is not None:
+                    current_state = new_state
+            #获胜状态
+            elif current_state == WIN:
+                game_start = 1
+                new_state = s_win.handle_events(event, mouse_pos)
                 if new_state is not None:
                     current_state = new_state
             # 其他状态类似...
@@ -66,8 +82,10 @@ def main():
         if current_state == MENU:
             s_menu.draw()
         elif current_state == GAMEPLAY:
-            s_gameplay.time_accumulate(start_ticks)
+            s_win.time_str = s_gameplay.time_accumulate(start_ticks)
             s_gameplay.draw()
+        elif current_state == WIN:
+            s_win.draw()
             
         # ...
         
