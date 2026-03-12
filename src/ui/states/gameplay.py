@@ -17,18 +17,17 @@ class gameplay(object):
         self.width = screen.get_width()
         self.height = screen.get_height()
         self.holding_disk_height = 180      #拿起的柱子的高度
-        self.time_str = '0.00'
-        self.time_continue = 1
+        self.time_str = '0.00'      #需要显示的时间数
         
         
-        # 柱子类(根据柱子的数量添加)
+        # 初始化所有柱子(根据柱子的数量添加)
         self.towers = []
         for tower_x in range(self.num_towers):
             x_center = ((tower_x+1)*(self.width))/(self.num_towers+1)
             tower = tower_m.Tower(self.screen_surface, x_center, 700, 20, 400, 240, 40, self.num_disks, tower_x, )
             self.towers.append(tower)
 
-        # 盘子类
+        # 初始化所有盘子
         self.disks = []
         disk_font = pygame.font.SysFont('SimHei', 15)   #序号字体
         for disk_size in range(self.num_disks, 0, -1):  # disk_size 从 self.num_disks 递减到 1
@@ -71,7 +70,7 @@ class gameplay(object):
                         print(f"移动盘子 {self.holding_disk.size} 到柱子 {self.selected_tower+1}")
                         self.holding_disk = None
                     else:
-                        print("不能放在这里，规则不允许")
+                        print("无法放置")
         return self.win_detect()
 
     #定义一个刷新盘子的方法
@@ -83,23 +82,20 @@ class gameplay(object):
         for disk in self.disks:
             self.towers[0].add_disk(disk)
 
+    #检测获胜方法
     def win_detect(self):
         last_tower = self.towers[-1]
         if len(last_tower.disks) == self.num_disks:
             return 5
         return 1    #1为游玩态
         
-
+    #时间累计方法
     def time_accumulate(self, start_ticks):
         #首先检测获胜
         if self.win_detect() == 5:
-            # #将时间暂停
-            # self.time_continue = 0
             return self.time_str
         #未获得胜利的时候继续计时
         elif self.win_detect() == 1:
-        #     self.time_continue = 1
-        # elif self.time_continue == 1:
             # 计算已经过的秒数
             elapsed_seconds = (pygame.time.get_ticks() - start_ticks) / 1000.0
             # 格式化为小数点后两位
@@ -107,9 +103,8 @@ class gameplay(object):
             return self.time_str
         else:
             return '0.00'
-        
-        
 
+    #绘制对应屏幕方法
     def draw(self):
         self.screen_surface.fill((255,255,255))     #清屏
         for tower in self.towers:
