@@ -17,10 +17,11 @@ WIN = 5
 
 # 各种参数
 width, height = 1280, 720
-num_disks = 1       #盘子的数量
+num_disks = 4       #盘子的数量
 num_towers = 3       #柱子的数量
 game_start = 1
 start_ticks = 0
+first_ticks = pygame.time.get_ticks()
 
 def main():
     global start_ticks, win_time, game_start
@@ -36,7 +37,7 @@ def main():
     
     # 初始化各个界面（传入共享资源，如screen, font）
     s_menu = menu(screen)
-    s_gameplay = gameplay(screen, font, num_disks, num_towers)   # 游戏界面初始化（创建柱子、盘子等）
+    s_gameplay = gameplay(screen, font, num_disks, num_towers, first_ticks)   # 游戏界面初始化（创建柱子、盘子等）
     s_win = win(screen)
     # leaderboard.init(screen, font)
     # settings.init(screen, font)
@@ -46,6 +47,7 @@ def main():
     while running:
         #获取鼠标位置
         mouse_pos = pygame.mouse.get_pos()
+        s_gameplay.total_ticks = pygame.time.get_ticks()
         
         # 事件处理：根据当前状态调用对应模块的handle_events
         for event in pygame.event.get():

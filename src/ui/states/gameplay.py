@@ -7,7 +7,7 @@ from ...solution import solution_m
 
 class gameplay(object):
     """docstring for gameplay."""
-    def __init__(self, screen, font, num_disks, num_towers):
+    def __init__(self, screen, font, num_disks, num_towers, first_ticks):
         super(gameplay, self).__init__()
         self.screen_surface = screen
         self.game_font = font
@@ -22,6 +22,11 @@ class gameplay(object):
         self.implication_str = ''   #对应要显示的提示文字
         self.solution1 = solution_m.solution()
         self.solution_start = 0
+        self.solution_total_step = 0      #记录解题总步骤
+        self.solution_step = 0      #记录解题步骤
+        self.total_ticks = 0
+        self.first_ticks = first_ticks
+        
         
         # 初始化所有柱子(根据柱子的数量添加)
         self.towers = []
@@ -54,9 +59,10 @@ class gameplay(object):
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:      #按下左键
                 if self.solution_rect.collidepoint(mouse_pos): #检测是否在第一个矩形中，如果是则开始解题
-                    self.solution_untie()
-                    self.solution_start = 1
-                    pass
+                    if self.solution_start == 0:
+                        self.solution_start = 1
+                        self.solution_total_step = self.solution1.get_classical_num(self.num_disks)
+                        self.solution1.recursion(self.num_disks, 0, 1, 2)   #获得答案
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:     #选中第一根柱子
                 self.selected_tower = 0
@@ -66,16 +72,28 @@ class gameplay(object):
                 self.selected_tower = 2
             elif event.key == pygame.K_SPACE:
                 self.move_disks()
+        
+        #处理解题问题
+        if self.solution_start:
+            self.solution_untie()
         return self.win_detect()
 
     #定义一个解包解题元组并执行相应操作的方法
     def solution_untie(self):
-        self.solution1.recursion(self.num_disks, 0, 1, 2)
-        for disk_size, origin_tower, taget_tower in self.solution1.solution_dict:
-            self.selected_tower = origin_tower
-            self.move_disks()
-            self.selected_tower = taget_tower
-            self.move_disks()
+        current_time = self.total_ticks
+        if current_time - self.first_ticks >= 1000:
+            self.first_ticks = current_time
+            if self.solution_step < self.solution_total_step:
+                disk_size, origin_tower, taget_tower = self.solution1.solution_dict[self.solution_step]
+                self.selected_tower = origin_tower
+                self.move_disks()
+                self.draw_holding_disk()
+                self.selected_tower = taget_tower
+                self.move_disks()
+                self.draw_holding_disk()
+            elif self.solution_step == self.solution_total_step:    #结束解题
+                self.solution_start = 0     #将参数置0
+
 
     #定义一个移动盘子的方法
     def move_disks(self):
@@ -101,6 +119,16 @@ class gameplay(object):
             else:
                 print("无法放置")
                 self.implication_str = "无法放置"            
+
+    #定义一个绘制盘子的方法
+    def draw_holding_disk(self):
+        # 绘制手中盘子
+        if self.holding_disk:
+            # 获取当前选中柱子的中心x坐标
+            tower_x = self.towers[self.selected_tower].x
+            # 设置盘子的位置：x为柱子中心，y固定为100
+            self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
+            self.holding_disk.draw(self.screen_surface)     #绘制
 
     #定义一个刷新盘子的方法
     def reset(self):
@@ -140,13 +168,14 @@ class gameplay(object):
         for tower in self.towers:
             tower.draw(self.screen_surface)
         
-        # 绘制手中盘子
-        if self.holding_disk:
-            # 获取当前选中柱子的中心x坐标
-            tower_x = self.towers[self.selected_tower].x
-            # 设置盘子的位置：x为柱子中心，y固定为100
-            self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
-            self.holding_disk.draw(self.screen_surface)     #绘制
+        # # 绘制手中盘子
+        # if self.holding_disk:
+        #     # 获取当前选中柱子的中心x坐标
+        #     tower_x = self.towers[self.selected_tower].x
+        #     # 设置盘子的位置：x为柱子中心，y固定为100
+        #     self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
+        #     self.holding_disk.draw(self.screen_surface)     #绘制
+        self.draw_holding_disk()
 
         #绘制时间
         # 渲染文本
