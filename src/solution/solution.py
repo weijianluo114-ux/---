@@ -4,6 +4,11 @@ class solution(object):
         self.solution_dict = []     #空列表，用于存储解题元组(盘子, 所在的柱子, 要移动到的柱子)
         pass
 
+
+    #清除解题元组列表
+    def clear_solution_dict(self):
+        self.solution_dict = []
+    
     #获取经典汉诺塔需要的最少移动次数
     def get_classical_num(self, num_disk):
         return 2**num_disk-1
