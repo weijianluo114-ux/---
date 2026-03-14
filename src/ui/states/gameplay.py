@@ -21,11 +21,14 @@ class gameplay(object):
         self.time_str = '0.00'      #需要显示的时间数
         self.implication_str = ''   #对应要显示的提示文字
         self.solution1 = solution_m.solution()
-        self.solution_start = 0
+        self.solution_start = 0         #解题开始标志位
         self.solution_total_step = 0      #记录解题总步骤
         self.solution_step = 0      #记录解题步骤
-        self.total_ticks = 0
-        self.first_ticks = first_ticks
+        self.total_ticks = 0        #记录总程序运行时间
+        self.first_ticks = first_ticks  #记录最初时的时间戳
+        self.move_step = 0      #移动盘子时记录状态机的参数
+        self.solution_speed = 50   #解题速度设置，越小越快
+        
         
         
         # 初始化所有柱子(根据柱子的数量添加)
@@ -52,6 +55,7 @@ class gameplay(object):
         self.solution_rect.center = (self.width-150, 50)
     
     def handle_events(self, event, mouse_pos):
+        #处理解题问题
         # 处理游戏中的键盘事件，按 ESC 返回菜单
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             return 0   # 返回主菜单状态 MENU
@@ -62,7 +66,9 @@ class gameplay(object):
                     if self.solution_start == 0:
                         self.solution_start = 1
                         self.solution_total_step = self.solution1.get_classical_num(self.num_disks)
+                        print(self.solution_total_step)
                         self.solution1.recursion(self.num_disks, 0, 1, 2)   #获得答案
+                        print(f'答案为：{self.solution1.solution_dict}')
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:     #选中第一根柱子
                 self.selected_tower = 0
@@ -72,25 +78,38 @@ class gameplay(object):
                 self.selected_tower = 2
             elif event.key == pygame.K_SPACE:
                 self.move_disks()
-        
-        #处理解题问题
+            
+        return self.win_detect()
+
+    #自动更新并执行
+    def update(self):
         if self.solution_start:
             self.solution_untie()
-        return self.win_detect()
 
     #定义一个解包解题元组并执行相应操作的方法
     def solution_untie(self):
-        current_time = self.total_ticks
-        if current_time - self.first_ticks >= 1000:
+        current_time = self.total_ticks     #记录上一次的时间
+        # print(f'当前时间{current_time}')
+        # print(f'上一次的时间{self.first_ticks}')
+        if (current_time - self.first_ticks) >= self.solution_speed:
             self.first_ticks = current_time
             if self.solution_step < self.solution_total_step:
                 disk_size, origin_tower, taget_tower = self.solution1.solution_dict[self.solution_step]
-                self.selected_tower = origin_tower
-                self.move_disks()
-                self.draw_holding_disk()
-                self.selected_tower = taget_tower
-                self.move_disks()
-                self.draw_holding_disk()
+                #这里可以分三步进行
+                #如果进行到第二步则将其转变为状态False并移动
+                if self.move_step == 0:
+                    self.move_step = 1
+                    self.selected_tower = origin_tower  #先将当前盘子拿起来
+                    self.move_disks()
+                #如果进行到第一步则将其转变为状态True并移动    
+                elif self.move_step == 1:
+                    self.move_step = 2
+                    self.selected_tower = taget_tower
+                elif self.move_step == 2:
+                    self.move_step = 0
+                    self.solution_step += 1
+                    print(f'第{self.solution_step}步')
+                    self.move_disks()
             elif self.solution_step == self.solution_total_step:    #结束解题
                 self.solution_start = 0     #将参数置0
 
@@ -169,12 +188,6 @@ class gameplay(object):
             tower.draw(self.screen_surface)
         
         # # 绘制手中盘子
-        # if self.holding_disk:
-        #     # 获取当前选中柱子的中心x坐标
-        #     tower_x = self.towers[self.selected_tower].x
-        #     # 设置盘子的位置：x为柱子中心，y固定为100
-        #     self.holding_disk.rect.center = (tower_x, self.holding_disk_height)
-        #     self.holding_disk.draw(self.screen_surface)     #绘制
         self.draw_holding_disk()
 
         #绘制时间

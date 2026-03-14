@@ -17,7 +17,7 @@ WIN = 5
 
 # 各种参数
 width, height = 1280, 720
-num_disks = 4       #盘子的数量
+num_disks = 7       #盘子的数量
 num_towers = 3       #柱子的数量
 game_start = 1
 start_ticks = 0
@@ -84,6 +84,7 @@ def main():
         if current_state == MENU:
             s_menu.draw()
         elif current_state == GAMEPLAY:
+            s_gameplay.update()     #解题更新
             s_win.time_str = s_gameplay.time_accumulate(start_ticks)
             s_gameplay.draw()
         elif current_state == WIN:
