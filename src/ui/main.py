@@ -17,7 +17,7 @@ WIN = 5
 
 # 各种参数
 width, height = 1280, 720
-num_disks = 2       #盘子的数量
+num_disks = 4       #盘子的数量
 num_towers = 3       #柱子的数量
 game_start = 1
 start_ticks = 0
@@ -55,41 +55,48 @@ def main():
                 running = False
             #菜单栏状态
             elif current_state == MENU:
-                game_start = 1
                 new_state = s_menu.handle_events(event, mouse_pos)
                 if new_state is not None:
                     current_state = new_state
             #游玩状态        
-            elif current_state == GAMEPLAY:
-                #判断是否是进入这个状态的那一刻
-                if game_start == 1:
-                    start_ticks = pygame.time.get_ticks()
-                    s_gameplay.reset()
-                    game_start = 0
-                    
+            elif current_state == GAMEPLAY:                    
                 new_state = s_gameplay.handle_events(event, mouse_pos)
                 if new_state is not None:
                     current_state = new_state
             #获胜状态
             elif current_state == WIN:
-                game_start = 1
                 new_state = s_win.handle_events(event, mouse_pos)
                 if new_state is not None:
                     current_state = new_state
             # 其他状态类似...
         
         # 更新逻辑（如果需要，例如动画）
-
+        if current_state == MENU:
+            game_start = 1  #处于其它状态时，随时准备游戏
+        elif current_state == GAMEPLAY:
+            #判断是否是进入这个状态的那一刻
+            if game_start == 1: #进入游戏时将该标志位清0
+                start_ticks = pygame.time.get_ticks()
+                s_gameplay.reset()
+                game_start = 0
+            
+            #这里必须要有这个状态更新
+            new_state = s_gameplay.update()     #解题更新，并且更新状态
+            if new_state is not None:
+                current_state = new_state
+            s_win.time_str = s_gameplay.time_accumulate(start_ticks)
+        elif current_state == WIN:
+            game_start = 1  #处于其它状态时，随时准备游戏
+            
         # 绘制
         if current_state == MENU:
             s_menu.draw()
         elif current_state == GAMEPLAY:
-            s_gameplay.solution_update()     #解题更新
-            s_win.time_str = s_gameplay.time_accumulate(start_ticks)
             s_gameplay.draw()
         elif current_state == WIN:
             s_win.draw()
         
+        # print(current_state)
         
         #设置帧率为60帧
         pygame.display.flip()

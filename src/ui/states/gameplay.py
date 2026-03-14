@@ -27,9 +27,7 @@ class gameplay(object):
         self.total_ticks = 0        #记录总程序运行时间
         self.first_ticks = first_ticks  #记录最初时的时间戳
         self.move_step = 0      #移动盘子时记录状态机的参数
-        self.solution_speed = 200   #解题速度设置，越小越快
-        
-        
+        self.solution_speed = 50   #解题速度设置，越小越快
         
         # 初始化所有柱子(根据柱子的数量添加)
         self.towers = []
@@ -79,13 +77,13 @@ class gameplay(object):
                 self.selected_tower = 2
             elif event.key == pygame.K_SPACE:
                 self.move_disks()
-            
-        return self.win_detect()
+        return 1
 
     #自动更新并执行
-    def solution_update(self):
+    def update(self):
         if self.solution_start:
             self.solution_untie()
+        return self.win_detect()
 
     #定义一个解包解题元组并执行相应操作的方法
     def solution_untie(self):
